@@ -1,9 +1,7 @@
    #ifndef ReadingMesh
    #define ReadingMesh
-   #include "headers.h"
+   #include "../headers.h"
 
-
-    using namespace std;
 
     vector<array<double,2>> ReadVertices( string path );
     vector<array<int,3>> ReadFaces( string path );

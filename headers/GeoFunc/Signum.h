@@ -1,8 +1,8 @@
 
 #ifndef Signum
 #define Signum
-#include "headers.h"
-#include "TriangulationFunc.h"
+#include "../headers.h"
+#include "../Meshing/TriangulationFunc.h"
 
 using namespace std;
 

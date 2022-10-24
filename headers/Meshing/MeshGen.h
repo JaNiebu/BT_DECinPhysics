@@ -1,15 +1,7 @@
 #ifndef MeshGen
 #define MeshGen
-#include "headers.h"
-/*
-#include<iostream>
-#include<cmath>
-#include<vector>
-#include<array>
-#include<fstream>
-*/
+#include "../headers.h"
 
-using namespace std;
 void Mesh(int n);
 
 /*

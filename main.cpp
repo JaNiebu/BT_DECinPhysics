@@ -1,9 +1,13 @@
-#include "headers/own/headers.h"
-#include "headers/own/MeshGen.h"
-#include "headers/own/ReadingMesh.h"
-#include "headers/own/TriangulationFunc.h"
+#include "headers/headers.h"
+#include "headers/Meshing/MeshGen.h"
+#include "headers/Meshing/ReadingMesh.h"
+#include "headers/Meshing/TriangulationFunc.h"
 
-using namespace std;
+array<double,2> Field( array<double,2> position )
+{
+    array<double,2> Value = { position[0], position[1] };
+    return Value;
+}
 
 int main()
 {
@@ -15,10 +19,8 @@ int main()
 
     WriteFaces(F, "Faces.txt");
 
-    array<double,2> Field( array<double,2> position )
-    {
-        array<double,2> Value = { position[0], position[1] };
-        return Value;
-    }
+
     
+    
+
 }

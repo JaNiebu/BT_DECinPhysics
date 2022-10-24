@@ -2,7 +2,6 @@
 #include "sparseMM.h"
 #include <iostream>
 
-using namespace std;
 
 /*
 sparse matrix multiplication

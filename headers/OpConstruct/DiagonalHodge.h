@@ -1,10 +1,10 @@
 #ifndef DiagonalHodge
 #define DiagonalHodge
-#include "headers.h"
-#include "Signum.h"
-#include "TriangulationFunc.h"
-#include "Circumcenter.h"
-#include "sparse.h"
+#include "../headers.h"
+#include "../GeoFunc/Signum.h"
+#include "../Meshing/TriangulationFunc.h"
+#include "../GeoFunc/Circumcenter.h"
+#include "../NumCalc/sparse.h"
 
 
 using namespace std;

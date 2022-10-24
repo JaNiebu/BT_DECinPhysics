@@ -1,7 +1,7 @@
 #ifndef TriangulationFunc
 #define TriangulationFunc
-#include "headers.h"
-#include "Circumcenter.h"
+#include "../headers.h"
+#include "../GeoFunc/Circumcenter.h"
 
 using namespace std;
 
