@@ -7,6 +7,9 @@
 
     vector<array<double,2>> ReadVertices( string path );
     vector<array<int,3>> ReadFaces( string path );
+    void WriteVertices( vector<array<double,2>> V );
+    void WriteEdges( vector<array<int,2>> E, string filename );
+    void WriteFaces( vector<array<int,3>> F, string filename );
     
     /*
     

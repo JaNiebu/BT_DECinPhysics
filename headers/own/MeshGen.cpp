@@ -7,11 +7,11 @@ void Mesh(int n ){
      //scale of system ie number of vertices per direction
 double d = 1/(1.0*(n));     //grid constant
 //vector<array<double,2>> V = {};         //container for all vertices
-ofstream Vertices{"SqVertices.txt"};
+//ofstream Vertices{"SqVertices.txt"};
 ofstream TriVert{"TriVertices.txt"};
-ofstream Faces{"Faces.txt"};
+//ofstream Faces{"SqFaces.txt"};
 
-
+/*
 for (int i = 0; i < n+1; i++)
 {
     for (int j = 0; j < n+1; j++)
@@ -35,6 +35,7 @@ for (int i = 0; i < n; i++)
     }
     
 }
+*/
 
 //near-regular trianulation of unit square
 

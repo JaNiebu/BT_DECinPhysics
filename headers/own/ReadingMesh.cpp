@@ -32,3 +32,36 @@
         }
         return F;
     }
+
+    void WriteVertices( vector<array<double,2>> V, string filename )
+    {
+        ofstream Vertexfile{filename};
+
+        for (int i = 0; i < V.size(); i++)
+        {
+            Vertexfile << V[i][0] << " " << V[i][1] << endl;
+        }
+        
+    }
+
+    void WriteEdges( vector<array<int,2>> E, string filename )
+    {
+        ofstream Edgefile{filename};
+
+        for (int i = 0; i < E.size(); i++)
+        {
+            Edgefile << E[i][0] << " " << E[i][1] << endl;
+        }
+        
+    }
+
+    void WriteFaces( vector<array<int,3>> F, string filename )
+    {
+        ofstream Facefile{filename};
+
+        for (int i = 0; i < F.size(); i++)
+        {
+            Facefile << F[i][0] << " " << F[i][1] << " " << F[i][2] << endl;
+        }
+        
+    }
