@@ -19,6 +19,6 @@
     #include<iterator>
     #include<algorithm>
     #include<random>
-
+    #include<functional>
 
 #endif

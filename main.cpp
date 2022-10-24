@@ -15,4 +15,10 @@ int main()
 
     WriteFaces(F, "Faces.txt");
 
+    array<double,2> Field( array<double,2> position )
+    {
+        array<double,2> Value = { position[0], position[1] };
+        return Value;
+    }
+    
 }
