@@ -1,8 +1,7 @@
 
 #ifndef Signum
 #define Signum
-#include<array>
-#include<set>
+#include "headers.h"
 #include "TriangulationFunc.h"
 
 using namespace std;

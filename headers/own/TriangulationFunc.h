@@ -1,14 +1,6 @@
 #ifndef TriangulationFunc
 #define TriangulationFunc
-#include<iostream>
-#include<fstream>
-#include<vector>
-#include<array>
-#include<iterator>
-#include<algorithm>
-#include<set>
-#include<random>
-#include<math.h>
+#include "headers.h"
 #include "Circumcenter.h"
 
 using namespace std;

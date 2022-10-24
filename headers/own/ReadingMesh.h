@@ -1,9 +1,6 @@
    #ifndef ReadingMesh
    #define ReadingMesh
-    #include<array>
-    #include<vector>
-    #include<string>
-    #include<fstream>
+   #include "headers.h"
 
 
     using namespace std;

@@ -1,7 +1,6 @@
 #ifndef Circumcenter
 #define Circumcenter
-#include<array>
-#include<vector>
+#include "headers.h"
 
 using namespace std;
 

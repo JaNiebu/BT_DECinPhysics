@@ -1,9 +1,7 @@
 #ifndef sparseMMT
 #define sparseMMT
-#include<vector>
-#include<array>
+#include "headers.h"
 #include"sparse.h"
-#include<iostream>
 
 using namespace std;
 

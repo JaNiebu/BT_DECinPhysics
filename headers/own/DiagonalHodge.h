@@ -1,9 +1,6 @@
 #ifndef DiagonalHodge
 #define DiagonalHodge
-#include<map>
-#include<array>
-#include<vector>
-#include<cmath>
+#include "headers.h"
 #include "Signum.h"
 #include "TriangulationFunc.h"
 #include "Circumcenter.h"
