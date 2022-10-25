@@ -9,6 +9,7 @@
 //Preamble for operator construction process
 #include "headers/OpConstruct/BoundConstruct.h"
 #include "headers/OpConstruct/DiagonalHodge.h"
+#include "headers/Meshing/BoundaryElements.h"
 
 
 
@@ -54,6 +55,8 @@ int main()
 
     Sparse MinusPrimalBoundary1 = ConstructBound1( E , true );
 
+    Sparse PrimalBoundary2 = ConstructBound2( F , E , false );
+
     Sparse Hodge0 = DiagHodge0D( V , F );
 
     Sparse Hodge1 = DiagHodge1D( V , E , F );
@@ -68,6 +71,7 @@ int main()
         - generating and/or reading boundary conditions
         - generating and/or reading function data on interior
     */
+    vector<int> BoundaryEdgesIndices = GetBoundaryEdgesIndices( E.size() , PrimalBoundary2 );
 
 
 }
