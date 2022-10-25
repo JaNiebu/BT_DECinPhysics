@@ -40,16 +40,6 @@
         
     }
 
-    vector< array<int, 2> > getEdges( array<int,3> t ){
-        vector< array<int, 2> > E_t;
-        for (int i = 0; i < 3; i++)
-        {
-            array<int, 2> e = { t[i], t[(i+1)%3] };
-            E_t.push_back( e );
-        }
-        return E_t;
-    }
-
     vector<array<int, 3>> sharet( array<int,3> t, array<int, 2> e , vector< array<int, 3>> T){
         vector<array<int, 3>> sharingTriangles;
         set<int> V_t = { t[0], t[1], t[2] };

@@ -3,7 +3,7 @@
 
 
 /*
-sparse matrix multiplication
+sparse matrix multiplication [A*B^T]
 1. iterate over all nodes (image) - index i
 1.1. getting the i-th row (in our sparse matrix format);
 1.2. getting the j-th col of second matrix (which is transpose of initial) 

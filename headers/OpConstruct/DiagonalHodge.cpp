@@ -69,12 +69,14 @@ double CircDualLength( array<int,2> e , vector<array<double,2>> V , vector<array
 
 }
 
-vector<double> DiagHodge0D( vector<array<double,2>> V , vector<array<int,3>> F )
+Sparse DiagHodge0D( vector<array<double,2>> V , vector<array<int,3>> F )
 {
-    vector<double> DiagHodge0D;
+    Sparse DiagHodge0D;
     for (int i = 0; i < V.size(); i++)
     {
-        DiagHodge0D.push_back( CircDualArea( i , V , F ) );
+        DiagHodge0D.rows.push_back( i );
+        DiagHodge0D.column.push_back( i );
+        DiagHodge0D.values.push_back( CircDualArea( i , V , F ) );
     }
     return DiagHodge0D;
 
@@ -85,25 +87,27 @@ Sparse DiagHodge1D( vector<array<double,2>> V , vector<array<int,2>> E , vector<
     Sparse DiagHodge1D;
     for (int i = 0; i < E.size(); i++)
     {
+        DiagHodge1D.rows.push_back( i );
+        DiagHodge1D.column.push_back( i );
         double ratio = CircDualLength( E[i] , V , F ) / distance( V[E[i][0]] , V[E[i][1]] );
-        DiagHodge1D.column.push_back(i);
-        DiagHodge1D.rows.push_back(i);
         DiagHodge1D.values.push_back( ratio );
     }
     return DiagHodge1D;
 
 }
 
-vector<double> DiagHodge2D( vector<array<double,2>> V , vector<array<int,3>> F )
+Sparse DiagHodge2D( vector<array<double,2>> V , vector<array<int,3>> F )
 {
-    vector<double> DiagHodge2D;
+    Sparse DiagHodge2D;
     for (int i = 0; i < F.size(); i++)
     {
         int i_0 = F[i][0];
         int i_1 = F[i][1];
         int i_2 = F[i][2];
         double ratio = 1/TriArea( V[i_0] , V[i_1] , V[i_2] );
-        DiagHodge2D.push_back( ratio );
+        DiagHodge2D.rows.push_back( i );
+        DiagHodge2D.column.push_back( i );
+        DiagHodge2D.values.push_back( ratio );
     }
     return DiagHodge2D;
     
