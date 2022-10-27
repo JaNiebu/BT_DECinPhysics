@@ -38,6 +38,7 @@ vector<array<int,2>> GetAllEdges( vector<array<int,3>> F )
             }
         }
     }
+    return E;
 }
 
 

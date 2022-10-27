@@ -91,25 +91,22 @@ int main()
         array<int,2> edge = E[i];
         Cochain1.push_back( LineIntegral( Field1 , V[edge[0]] , V[edge[1]] ) );
     }
-    for (int i = 0; i < Cochain1.size(); i++)
-    {
-        cout << Cochain1[i] << endl;
-    }
     
     
     
-    /*
+    
+    
     vector<double> Cochain2;
     for (int i = 0; i < E.size(); i++)
     {
         array<int,2> edge = E[i];
         Cochain2.push_back( LineIntegral(Field2, V[edge[0]] , V[edge[1]] ) );
     }
-    */
+    
     
     vector<double> divergence1 = SparseVecMR( DIV , Cochain1 , V.size() );
 
-    //vector<double> divergence2 = SparseVecMR( DIV , Cochain2 , V.size() );
+    vector<double> divergence2 = SparseVecMR( DIV , Cochain2 , V.size() );
 
 
     /*
@@ -118,23 +115,25 @@ int main()
 
 
 
-   /*
-   5. Writing to file
-   */
+    /*
+    5. Writing to file
+    */
   
-  ofstream Div1{"Solutions/DivSol1.txt"};
-  for (int  i = 0; i < divergence1.size(); i++)
-  {
-    Div1 << divergence1[i] << endl;
-  }
+    ofstream Div1{"Solutions/DivSol1.txt"};
+    for (int  i = 0; i < divergence1.size(); i++)
+    {
+        Div1 << divergence1[i] << endl;
+    }
 
-/*
-  ofstream Div2{"Solutions/DivSol2.txt"};
-  for (int  i = 0; i < divergence2.size(); i++)
-  {
-    Div2 << divergence2[i] << endl;
-  }
-*/
+    
+    ofstream Div2{"Solutions/DivSol2.txt"};
+    for (int  i = 0; i < divergence2.size(); i++)
+    {
+        Div2 << divergence2[i] << endl;
+    }
+    
 
+    cout << V.size() << " " << divergence1.size() << " " << E.size() << " " << Cochain1.size() << endl;
 
+    //dimensions are wrong and there are a few fails, maybe due to corners (are there 4?)
 }
