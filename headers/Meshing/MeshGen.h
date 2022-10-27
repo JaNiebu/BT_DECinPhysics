@@ -2,7 +2,7 @@
 #define MeshGen
 #include "../headers.h"
 
-void Mesh(int n);
+void Mesh(int n , string adress);
 
 /*
 

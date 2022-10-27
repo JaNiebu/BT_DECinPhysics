@@ -1,14 +1,14 @@
 #include "MeshGen.h"
 
 
-void Mesh(int n ){
+void Mesh(int n , string adress ){
 
 //defining the basics of the mesh generation
      //scale of system ie number of vertices per direction
 double d = 1/(1.0*(n));     //grid constant
 //vector<array<double,2>> V = {};         //container for all vertices
 //ofstream Vertices{"SqVertices.txt"};
-ofstream TriVert{"TriVertices.txt"};
+ofstream TriVert{ adress };
 //ofstream Faces{"SqFaces.txt"};
 
 /*

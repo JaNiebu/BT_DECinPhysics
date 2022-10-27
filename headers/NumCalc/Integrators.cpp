@@ -1,6 +1,6 @@
 #include "Integrators.h"
 
-int precision = 1000;
+int precision = 100;
 double LineIntegral( function< array<double,2>(array<double,2>)> field , array<double,2> initial_point, array<double,2> final_point )
 {
     double value = 0;
@@ -8,8 +8,8 @@ double LineIntegral( function< array<double,2>(array<double,2>)> field , array<d
     for (int i = 0; i < precision; i++)
     {
         array<double,2> position = { initial_point[0]+(i/precision)*edge[0], initial_point[1]+(i/precision)*edge[1] };
-        
-        value += (field( position )[0]*edge[0] + field( position )[1]*edge[1])/precision;
+        array<double,2> FieldValue = field( position );
+        value += (FieldValue[0]*edge[0] + FieldValue[1]*edge[1])/precision;
     }
     return value;
     
