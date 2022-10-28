@@ -9,10 +9,11 @@ sparse matrix multiplication
 1.1. getting the i-th row (in our sparse matrix format);
 1.2. getting the j-th col of second matrix
 1.3. calculating the matrix entry A_ij via summation formula
+-> arguments - A: left matrix, B: right matrix, n: rows of A , m: , n_2: dim rows B/cols A
 */
 
 
-Sparse SparseMM( Sparse A, Sparse B, int n, int m, int n_2)
+Sparse SparseMM( Sparse A, Sparse B, int n, int m )
 {
     Sparse C;
     for (int i = 0; i < n; i++)
@@ -30,7 +31,7 @@ Sparse SparseMM( Sparse A, Sparse B, int n, int m, int n_2)
             
         }
         
-        for (int j = 0; j < n_2; j++)
+        for (int j = 0; j < m; j++)
         {
             double C_ij = 0;
             vector<int> jColRow;
@@ -45,6 +46,7 @@ Sparse SparseMM( Sparse A, Sparse B, int n, int m, int n_2)
                 }
                 
             }
+            
             for (int k_2 = 0; k_2 < iRowCol.size(); k_2++)
             {
                 int alpha = iRowCol[k_2];
@@ -72,7 +74,7 @@ Sparse SparseMM( Sparse A, Sparse B, int n, int m, int n_2)
 };
 
 
-Sparse SparseInvMM( Sparse A, Sparse B, int n, int m, int n_2)
+Sparse SparseInvMM( Sparse A, Sparse B, int n, int m)
 {
     Sparse C;
     for (int i = 0; i < n; i++)
@@ -90,7 +92,7 @@ Sparse SparseInvMM( Sparse A, Sparse B, int n, int m, int n_2)
             
         }
         
-        for (int j = 0; j < n_2; j++)
+        for (int j = 0; j < m; j++)
         {
             double C_ij = 0;
             vector<int> jColRow;

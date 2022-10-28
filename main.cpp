@@ -39,7 +39,7 @@ int main()
         - construct delaunay triangulation,
         - write triangulation to file
     */
-    Mesh(10 , "Meshdata/TriVertices.txt");
+    Mesh(2 , "Meshdata/TriVertices.txt");
     
     vector<array<double,2>> V = ReadVertices("Meshdata/TriVertices.txt");
 
@@ -70,9 +70,9 @@ int main()
     Sparse Hodge1 = DiagHodge1D( V , E , F );
 
     //modified laplace operator
-    Sparse L = SparseMM( MinusPrimalBoundary1 , SparseMMT( Hodge1 , PrimalBoundary1,E.size(),E.size(),V.size()), V.size(), E.size(), V.size() );
+    Sparse L = SparseMM( MinusPrimalBoundary1 , SparseMMT( Hodge1 , PrimalBoundary1,E.size(),E.size() ), V.size(), E.size());
 
-    Sparse DIV = SparseInvMM( Hodge0 , SparseMM( MinusPrimalBoundary1 , Hodge1 , V.size() , E.size() , E.size()) , V.size() , E.size() , V.size() );
+    Sparse DIV = SparseInvMM( Hodge0 , SparseMM( MinusPrimalBoundary1 , Hodge1 , V.size() , E.size() ) , V.size() , E.size() );
 
     
     /*

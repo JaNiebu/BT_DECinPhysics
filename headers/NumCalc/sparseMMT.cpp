@@ -11,7 +11,7 @@ sparse matrix multiplication [A*B^T]
 1.3. calculating the matrix entry A_ij via summation formula
 */
 
-Sparse SparseMMT( Sparse A, Sparse B, int n, int m, int n_2)
+Sparse SparseMMT( Sparse A, Sparse B, int n, int m)
 {
     Sparse C;
     for (int i = 0; i < n; i++)
@@ -29,7 +29,7 @@ Sparse SparseMMT( Sparse A, Sparse B, int n, int m, int n_2)
             
         }
         
-        for (int j = 0; j < n_2; j++)
+        for (int j = 0; j < m; j++)
         {
             double C_ij = 0;
             vector<int> jRowCol;

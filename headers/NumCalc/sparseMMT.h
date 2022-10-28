@@ -3,7 +3,7 @@
 #include"sparse.h"
 
 
-Sparse SparseMMT( Sparse A , Sparse B , int n, int m, int n_2);
+Sparse SparseMMT( Sparse A , Sparse B , int n, int m);
 
 
 #endif
