@@ -14,16 +14,26 @@
 
 
 
-array<double,2> Field1( array<double,2> position )
+array<double,2> Field( array<double,2> position , double alpha )
 {
-    array<double,2> Value = { position[0]*position[0], position[1] };
+    array<double,2> Value = { pow( position[0] , alpha ), position[1] };
     return Value;
 }
 
-array<double,2> Field2( array<double,2> position )
+double SourceField( array<double,2> position )
 {
-    array<double,2> Value = { position[0], position[1] };
-    return Value;
+    double x = position[0];
+    double y = position[1];
+    double Val;
+    if ( distance(position, array<double,2> {.5,.5}) < 0.1 )
+    {
+        Val = 1;
+    }
+    else
+    {
+        Val = 0;
+    }
+    return Val;
 }
 
 
@@ -39,7 +49,7 @@ int main()
         - construct delaunay triangulation,
         - write triangulation to file
     */
-    Mesh(2 , "Meshdata/TriVertices.txt");
+    Mesh(3 , "Meshdata/TriVertices.txt");
     
     vector<array<double,2>> V = ReadVertices("Meshdata/TriVertices.txt");
 
@@ -71,7 +81,7 @@ int main()
 
     //modified laplace operator
     Sparse L = SparseMM( MinusPrimalBoundary1 , SparseMMT( Hodge1 , PrimalBoundary1,E.size(),E.size() ), V.size(), E.size());
-
+    //normal divergence operator
     Sparse DIV = SparseInvMM( Hodge0 , SparseMM( MinusPrimalBoundary1 , Hodge1 , V.size() , E.size() ) , V.size() , E.size() );
 
     
@@ -83,30 +93,78 @@ int main()
         - generating and/or reading function data on interior
     */
     vector<int> BoundaryEdgesIndices = GetBoundaryEdgesIndices( E.size() , PrimalBoundary2 );
-
-    
-    vector<double> Cochain1;
-    for (int i = 0; i < E.size(); i++)
+    vector<array<int,2>> BoundaryEdges;
+    for (int i = 0; i < BoundaryEdgesIndices.size(); i++)
     {
-        array<int,2> edge = E[i];
-        Cochain1.push_back( LineIntegral( Field1 , V[edge[0]] , V[edge[1]] ) );
+        BoundaryEdges.push_back( E[BoundaryEdgesIndices[i]] );
+    }
+    vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
+
+    array<double,3> alpha_param = {1.,2.,3.};
+
+    for (int i = 0; i < alpha_param.size(); i++)
+    {
+        vector<double> cochain;
+        double alpha = alpha_param[i];
+        for (int j = 0; j < E.size(); j++)
+        {   
+            array<double,2> initial_point = V[E[j][0]];
+            array<double,2> final_point = V[E[j][1]];
+            cochain.push_back( LineIntegral( Field , alpha , initial_point , final_point ));
+        }
+
+        vector<double> h_values;
+        for (int j = 0; j < BoundaryNodesIndices.size(); j++)
+        {
+            int index = BoundaryNodesIndices[j];
+            vector<array<double,2>> NodesOfBoundary;
+            //find start point of boundary of dual cell of node "index"
+            for (int  k = 0; k < BoundaryEdges.size(); k++)
+            {
+                if ( BoundaryEdges[k][1]==index )
+                {
+                    array<double,2> edge_vector = { V[index][0]-V[BoundaryEdges[k][0]][0] , V[index][1]-V[BoundaryEdges[k][0]][1] };
+                    array<double,2> initial_point = { V[BoundaryEdges[k][0]][0]+edge_vector[0]/2 , V[BoundaryEdges[k][0]][1]+edge_vector[1]/2 };
+                    NodesOfBoundary.push_back( initial_point );
+                    break;
+                } 
+            }
+            //find end point of boundary of dual cell of node "index"
+            for (int k = 0; k < BoundaryEdges.size(); k++)
+            {
+                if ( BoundaryEdges[k][0]==index)
+                {
+                    array<double,2> edge_vector = { V[BoundaryEdges[k][1]][0]-V[index][0] , V[BoundaryEdges[k][1]][1]-V[index][1] };
+                    array<double,2> final_point = { V[index][0]+edge_vector[0]/2 , V[index][1]+edge_vector[1]/2};
+                    NodesOfBoundary.push_back( final_point );
+                    break;
+                }
+            }
+            //calculate h value
+            h_values.push_back( LineFluxIntegral( Field , alpha , NodesOfBoundary[0] , V[index] ) + LineFluxIntegral( Field , alpha , V[index] , NodesOfBoundary[1] ));
+            
+        }
+        
+        vector<double> Solution = SparseVecMR( DIV , cochain , V.size() );
+        for (int i = 0; i < BoundaryNodesIndices.size(); i++)
+        {
+            Solution[BoundaryNodesIndices[i]] += h_values[i];
+        }
+        string adress = "Solutions/SolFor" + to_string(alpha);
+        ofstream out{adress};
+        for (int j = 0; j < Solution.size(); j++)
+        {
+            out << Solution[j] << endl;
+        }
+        string Erradress = "Solutions/ErrorFor" + to_string(alpha);
+        ofstream ErrOut{Erradress};
+        for (int j = 0; j < Solution.size(); j++)
+        {
+            ErrOut << Solution[j] - (alpha*pow(V[j][0],alpha-1.)+1) << endl;
+        }
+        
     }
     
-    
-    
-    
-    
-    vector<double> Cochain2;
-    for (int i = 0; i < E.size(); i++)
-    {
-        array<int,2> edge = E[i];
-        Cochain2.push_back( LineIntegral(Field2, V[edge[0]] , V[edge[1]] ) );
-    }
-    
-    
-    vector<double> divergence1 = SparseVecMR( DIV , Cochain1 , V.size() );
-
-    vector<double> divergence2 = SparseVecMR( DIV , Cochain2 , V.size() );
 
 
     /*
@@ -119,21 +177,5 @@ int main()
     5. Writing to file
     */
   
-    ofstream Div1{"Solutions/DivSol1.txt"};
-    for (int  i = 0; i < divergence1.size(); i++)
-    {
-        Div1 << divergence1[i] << endl;
-    }
 
-    
-    ofstream Div2{"Solutions/DivSol2.txt"};
-    for (int  i = 0; i < divergence2.size(); i++)
-    {
-        Div2 << divergence2[i] << endl;
-    }
-    
-
-    cout << V.size() << " " << divergence1.size() << " " << E.size() << " " << Cochain1.size() << endl;
-
-    //dimensions are wrong and there are a few fails, maybe due to corners (are there 4?)
 }
