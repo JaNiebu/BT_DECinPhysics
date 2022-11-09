@@ -17,7 +17,7 @@
 
 array<double,2> Field( array<double,2> position , double alpha )
 {
-    array<double,2> Value = { -1.*pow( (position[0]-0.5) , alpha ), -1.*(position[1]-0.25) };
+    array<double,2> Value = { pow( (position[0]-0.5) , alpha ), (position[1]-0.5) };
     return Value;
 }
 
@@ -50,7 +50,8 @@ int main()
         - construct delaunay triangulation,
         - write triangulation to file
     */
-    Mesh(2 , "Meshdata/TriVertices.txt");
+    RandomNodes( 200 , "Meshdata/RandomVertices.txt" , time(0) );
+    Mesh(10 , "Meshdata/TriVertices.txt");
     
     vector<array<double,2>> V = ReadVertices("Meshdata/TriVertices.txt");
 
@@ -80,14 +81,17 @@ int main()
     WriteSparse( "Solutions/PrimalBoundary2Operator.txt" , PrimalBoundary2 , E.size() , F.size() );
 
     Sparse Hodge0 = DiagHodge0D( V , F );
+    WriteSparse( "Solutions/DiagHodge0Operator.txt" , Hodge0 , V.size() , V.size() );
 
     Sparse Hodge1 = DiagHodge1D( V , E , F );
+    WriteSparse( "Solutions/DiagHodge1Operator.txt" , Hodge1 , E.size() , E.size() );
 
     //modified laplace operator
     Sparse L = SparseMM( MinusPrimalBoundary1 , SparseMMT( Hodge1 , PrimalBoundary1,E.size(),E.size() ), V.size(), E.size());
+    WriteSparse( "Solutions/ModifiedLaplaceOperator.txt" , L , V.size() , V.size() );
     //normal divergence operator
     Sparse DIV = SparseInvMM( Hodge0 , SparseMM( MinusPrimalBoundary1 , Hodge1 , V.size() , E.size() ) , V.size() , E.size() );
-
+    WriteSparse( "Solutions/DiscreteDivergenceOperator.txt" , DIV , V.size() , E.size() );
     
     /*
     3. Problem input
@@ -102,7 +106,6 @@ int main()
     {
         BoundaryEdges.push_back( E[BoundaryEdgesIndices[i]] );
     }
-    cout << BoundaryEdgesIndices.size() << endl;
     vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
     
 
@@ -122,7 +125,6 @@ int main()
         vector<double> h_values;
         for (int j = 0; j < BoundaryNodesIndices.size(); j++)
         {   
-            cout << j << endl;
             int index = BoundaryNodesIndices[j];
             vector<array<double,2>> NodesOfBoundary;
             //find start point of boundary of dual cell of node "index"
@@ -151,18 +153,21 @@ int main()
             h_values.push_back( LineFluxIntegral( Field , alpha , NodesOfBoundary[0] , V[index] ) + LineFluxIntegral( Field , alpha , V[index] , NodesOfBoundary[1] ));
             
         }
+        /*
         for (int j = 0; j < h_values.size(); j++)
         {
             cout << h_values[j] << endl;
         }
-        
+        */
         
         
         vector<double> Solution = SparseVecMR( DIV , cochain , V.size() );
+        /*
         for (int i = 0; i < BoundaryNodesIndices.size(); i++)
         {
             Solution[BoundaryNodesIndices[i]] += h_values[i];
         }
+        */
         string adress = "Solutions/SolFor" + to_string(alpha);
         ofstream out{adress};
         for (int j = 0; j < Solution.size(); j++)
@@ -173,7 +178,7 @@ int main()
         ofstream ErrOut{Erradress};
         for (int j = 0; j < Solution.size(); j++)
         {
-            ErrOut << Solution[j] - (-1.*alpha*pow(V[j][0]-0.5,alpha-1.)-1) << endl;
+            ErrOut << Solution[j] - (alpha*pow(V[j][0]-0.5,alpha-1.)+1) << endl;
         }
         
     }
@@ -189,6 +194,4 @@ int main()
     /*
     5. Writing to file
     */
-  
-
 }

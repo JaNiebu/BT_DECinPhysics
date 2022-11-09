@@ -1,5 +1,27 @@
 #include "MeshGen.h"
 
+void RandomNodes(int Nodesnumber , string adress, int seed )
+{
+    vector<array<double,2>> V;
+    V.push_back( array<double,2> {0.,0.});
+    V.push_back( array<double,2> {1.,0.});
+    V.push_back( array<double,2> {0.,1.});
+    V.push_back( array<double,2> {1.,1.});
+    mt19937 gen( seed );
+    uniform_real_distribution<double> distribution(.0,1.);
+    for (int i = 0; i < Nodesnumber; i++)
+    {
+        double x = distribution(gen);
+        double y = distribution(gen);
+        V.push_back( array<double,2> {x,y} );
+    }
+    ofstream out{ adress };
+    for (int i = 0; i < V.size(); i++)
+    {
+        out << V[i][0] << " " << V[i][1] << endl;
+    }
+
+}
 
 void Mesh(int n , string adress ){
 
@@ -11,6 +33,7 @@ double d = 1/(1.0*(n));     //grid constant
 ofstream TriVert{ adress };
 //ofstream Faces{"SqFaces.txt"};
 
+//square lattice points
 /*
 for (int i = 0; i < n+1; i++)
 {
