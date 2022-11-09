@@ -3,6 +3,7 @@ project(DECCALC)
 
 add_executable( bin_main main.cpp 
 
+headers/NumCalc/sparse.cpp
 headers/NumCalc/Integrators.cpp
 headers/NumCalc/sparseMM.cpp
 headers/NumCalc/sparseMMT.cpp
@@ -18,6 +19,7 @@ headers/GeoFunc/Signum.cpp
 
 headers/OpConstruct/BoundConstruct.cpp
 headers/OpConstruct/DiagonalHodge.cpp
+headers/OpConstruct/ReadWriteOp.cpp
 
 headers/AlgLib/alglibinternal.cpp
 headers/AlgLib/alglibmisc.cpp

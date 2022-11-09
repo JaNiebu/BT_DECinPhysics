@@ -37,12 +37,17 @@ vector<int> GetBoundaryNodesIndices( int Nodesnumber , vector<array<int,2>> Boun
             {
                 count++;
             }
-            
+            else if ( count == 2 )
+            {
+                BoundaryNodesIndices.push_back( i );
+            }
+            else if ( count > 2 )
+            {
+                cout << "node has 3 boundary edges, node number: " << i << endl;
+            }   
         }
-        if ( count == 2 )
-        {
-            BoundaryNodesIndices.push_back( i );
-        }
+        
+        
         
     }
     return BoundaryNodesIndices;

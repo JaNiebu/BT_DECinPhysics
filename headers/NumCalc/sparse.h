@@ -10,4 +10,6 @@ struct Sparse
     vector<int> column;
 };
 
+int FindEntryij( int i , int j , Sparse A );
+
 #endif
