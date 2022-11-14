@@ -17,7 +17,7 @@
 
 array<double,2> Field( array<double,2> position , double alpha )
 {
-    array<double,2> Value = { pow( (position[0]-0.5) , alpha ), (position[1]-0.5) };
+    array<double,2> Value = { pow( (position[0]-0.5) , alpha ), pow(position[1] , alpha-1.) };
     return Value;
 }
 
@@ -50,10 +50,11 @@ int main()
         - construct delaunay triangulation,
         - write triangulation to file
     */
-    RandomNodes( 200 , "Meshdata/RandomVertices.txt" , time(0) );
-    Mesh(10 , "Meshdata/TriVertices.txt");
+    //RandomNodes( 10 , "Meshdata/RandomVertices.txt" , time(0) );
+    //Mesh(5 , "Meshdata/TriVertices.txt");
+    HexAreaNodes(8, "Meshdata/HexaVertices.txt");
     
-    vector<array<double,2>> V = ReadVertices("Meshdata/TriVertices.txt");
+    vector<array<double,2>> V = ReadVertices("Meshdata/HexaVertices.txt");
 
     vector<array<int,3>> F = BowyerWatson(V);
 
@@ -72,26 +73,26 @@ int main()
         - combined operator for specfic problem e.g. (modified) laplace
     */
     Sparse PrimalBoundary1 = ConstructBound1( E , false );
-    WriteSparse( "Solutions/PrimalBoundary1Operator.txt" , PrimalBoundary1 , V.size() , E.size());
+    //WriteSparse( "Solutions/PrimalBoundary1Operator.txt" , PrimalBoundary1 , V.size() , E.size());
 
     Sparse MinusPrimalBoundary1 = ConstructBound1( E , true );
-    WriteSparse( "Solutions/MinusPrimalBoundary1Operator.txt" , MinusPrimalBoundary1 , V.size() , E.size() );
+    //WriteSparse( "Solutions/MinusPrimalBoundary1Operator.txt" , MinusPrimalBoundary1 , V.size() , E.size() );
 
     Sparse PrimalBoundary2 = ConstructBound2( F , E , false );
-    WriteSparse( "Solutions/PrimalBoundary2Operator.txt" , PrimalBoundary2 , E.size() , F.size() );
+    //WriteSparse( "Solutions/PrimalBoundary2Operator.txt" , PrimalBoundary2 , E.size() , F.size() );
 
     Sparse Hodge0 = DiagHodge0D( V , F );
-    WriteSparse( "Solutions/DiagHodge0Operator.txt" , Hodge0 , V.size() , V.size() );
+    //WriteSparse( "Solutions/DiagHodge0Operator.txt" , Hodge0 , V.size() , V.size() );
 
     Sparse Hodge1 = DiagHodge1D( V , E , F );
-    WriteSparse( "Solutions/DiagHodge1Operator.txt" , Hodge1 , E.size() , E.size() );
+    //WriteSparse( "Solutions/DiagHodge1Operator.txt" , Hodge1 , E.size() , E.size() );
 
     //modified laplace operator
     Sparse L = SparseMM( MinusPrimalBoundary1 , SparseMMT( Hodge1 , PrimalBoundary1,E.size(),E.size() ), V.size(), E.size());
-    WriteSparse( "Solutions/ModifiedLaplaceOperator.txt" , L , V.size() , V.size() );
+    //WriteSparse( "Solutions/ModifiedLaplaceOperator.txt" , L , V.size() , V.size() );
     //normal divergence operator
     Sparse DIV = SparseInvMM( Hodge0 , SparseMM( MinusPrimalBoundary1 , Hodge1 , V.size() , E.size() ) , V.size() , E.size() );
-    WriteSparse( "Solutions/DiscreteDivergenceOperator.txt" , DIV , V.size() , E.size() );
+    //WriteSparse( "Solutions/DiscreteDivergenceOperator.txt" , DIV , V.size() , E.size() );
     
     /*
     3. Problem input
@@ -109,8 +110,9 @@ int main()
     vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
     
 
-    array<double,3> alpha_param = {1.,2.,3.};
-
+    //loop over different fields
+    array<double,3> alpha_param = {3.,5.,7.};
+    /*
     for (int i = 0; i < alpha_param.size(); i++)
     {
         vector<double> cochain;
@@ -153,21 +155,16 @@ int main()
             h_values.push_back( LineFluxIntegral( Field , alpha , NodesOfBoundary[0] , V[index] ) + LineFluxIntegral( Field , alpha , V[index] , NodesOfBoundary[1] ));
             
         }
-        /*
-        for (int j = 0; j < h_values.size(); j++)
-        {
-            cout << h_values[j] << endl;
-        }
-        */
         
         
         vector<double> Solution = SparseVecMR( DIV , cochain , V.size() );
-        /*
+        
         for (int i = 0; i < BoundaryNodesIndices.size(); i++)
         {
-            Solution[BoundaryNodesIndices[i]] += h_values[i];
+            double HodgeCorrection = 1/(FindEntryij( i , i , Hodge0 ));
+            Solution[BoundaryNodesIndices[i]] += h_values[i]*HodgeCorrection;
         }
-        */
+        
         string adress = "Solutions/SolFor" + to_string(alpha);
         ofstream out{adress};
         for (int j = 0; j < Solution.size(); j++)
@@ -178,10 +175,11 @@ int main()
         ofstream ErrOut{Erradress};
         for (int j = 0; j < Solution.size(); j++)
         {
-            ErrOut << Solution[j] - (alpha*pow(V[j][0]-0.5,alpha-1.)+1) << endl;
+            ErrOut << Solution[j] - (alpha*pow(V[j][0]-0.5,alpha-1.)+(alpha-1.)*pow(V[j][1],alpha-2.)) << endl;
         }
         
     }
+    */
     
 
 

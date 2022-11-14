@@ -23,6 +23,54 @@ void RandomNodes(int Nodesnumber , string adress, int seed )
 
 }
 
+void HexAreaNodes(int n_max , string adress )
+{
+    vector<array<double,2>> V;
+    double d = 0.25;//0.5/(1.*n_max);
+    array<double,2> a_1 = {-d/2 , d*pow(3,0.5)/2 };
+    array<double,2> a_2 = {d/2 , d*pow(3,0.5)/2 };
+    array<double,2> a_3 = {d,0};
+    array<double,2> Mina_1 = {d/2 , -d*pow(3,0.5)/2 };
+    array<double,2> Mina_2 = {-d/2 , -d*pow(3,0.5)/2 };
+    array<double,2> Mina_3 = {-d,0};
+    array<array<double,2>,6> vectors = { a_1 , a_2 , a_3 , Mina_1 , Mina_2 , Mina_3};
+    array<double,2> Origin = { 0.5, 0.5};
+    V.push_back( Origin );
+    array<double,2> Node;
+
+    for (int i = 1; i < (n_max+1); i++)
+    {
+        Node[0] = Origin[0] + i*Mina_2[0];
+        Node[1] = Origin[1] + i*Mina_2[1];
+        V.push_back( Node );
+        for (int j = 0; j < vectors.size(); j++)
+        {
+            for (int k = 1; k < i+1; k++)
+            {
+                if ( k==i && j==5 )
+                {
+                    break;
+                }
+                
+                Node[0] += vectors[j][0];
+                Node[1] += vectors[j][1];
+                V.push_back( Node );
+            }
+            
+        }
+        //Node[0] += Mina_3[0];
+        //Node[1] += Mina_3[1];
+        
+    }
+    ofstream out{ adress };
+    for (int i = 0; i < V.size(); i++)
+    {
+        out << V[i][0] << " " << V[i][1] << endl;
+    }
+    
+    
+}
+
 void Mesh(int n , string adress ){
 
 //defining the basics of the mesh generation

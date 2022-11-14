@@ -1,6 +1,6 @@
 #include "Integrators.h"
 
-double precision = 100.;
+double precision = 1000.;
 double LineIntegral( function< array<double,2>(array<double,2>,double)> field, double alpha , array<double,2> initial_point, array<double,2> final_point )
 {
     double value = 0;
@@ -19,7 +19,7 @@ double LineFluxIntegral( function< array<double,2>(array<double,2>,double)> fiel
 {
     double value = 0;
     array<double,2> edge = { final_point[0]-initial_point[0], final_point[1]-initial_point[1] };
-    array<double,2> edgenormal = { final_point[1]-initial_point[1], final_point[0]-initial_point[0] };
+    array<double,2> edgenormal = { final_point[1]-initial_point[1], -final_point[0]+initial_point[0] };
     for (int i = 0; i < precision; i++)
     {
         array<double,2> position = { initial_point[0]+(i/precision)*edge[0], initial_point[1]+(i/precision)*edge[1] };
