@@ -26,7 +26,7 @@ void RandomNodes(int Nodesnumber , string adress, int seed )
 void HexAreaNodes(int n_max , string adress )
 {
     vector<array<double,2>> V;
-    double d = 0.25;//0.5/(1.*n_max);
+    double d = 0.5/(1.*n_max);
     array<double,2> a_1 = {-d/2 , d*pow(3,0.5)/2 };
     array<double,2> a_2 = {d/2 , d*pow(3,0.5)/2 };
     array<double,2> a_3 = {d,0};

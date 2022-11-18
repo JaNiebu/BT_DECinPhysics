@@ -17,7 +17,7 @@
 
 array<double,2> Field( array<double,2> position , double alpha )
 {
-    array<double,2> Value = { pow( (position[0]-0.5) , alpha ), pow(position[1] , alpha-1.) };
+    array<double,2> Value = { pow( (position[0]) , alpha ), position[1] };
     return Value;
 }
 
@@ -40,6 +40,12 @@ double SourceField( array<double,2> position )
 
 int main()
 {
+    vector<int> RingNumber = {1,2,3,4,5};               //different parameters for meshresolution
+    array<double,3> alpha_param = {2.,3.,4.};           //different parameters for field exponent
+    for (int n = 0; n < RingNumber.size() ; n++)
+    {
+    int n_max = RingNumber[n];
+    
 
     /*
     1. Meshing
@@ -52,17 +58,20 @@ int main()
     */
     //RandomNodes( 10 , "Meshdata/RandomVertices.txt" , time(0) );
     //Mesh(5 , "Meshdata/TriVertices.txt");
-    HexAreaNodes(8, "Meshdata/HexaVertices.txt");
+    string Nodesadress = "Meshdata/VerticesRing" + to_string(n_max) + ".txt";
+    string Facesadress = "Meshdata/FacesRing" + to_string(n_max) + ".txt";
+    string Edgesadress = "Meshdata/EdgesRing" + to_string(n_max) + ".txt";
+    HexAreaNodes(n_max, Nodesadress);
     
-    vector<array<double,2>> V = ReadVertices("Meshdata/HexaVertices.txt");
+    vector<array<double,2>> V = ReadVertices( Nodesadress );
 
     vector<array<int,3>> F = BowyerWatson(V);
 
-    WriteFaces(F, "Meshdata/Faces.txt");
+    WriteFaces(F, Facesadress);
 
     vector<array<int,2>> E = GetAllEdges(F);
 
-    WriteEdges(E, "Meshdata/Edges.txt");
+    WriteEdges(E, Edgesadress);
 
 
     /*
@@ -111,8 +120,7 @@ int main()
     
 
     //loop over different fields
-    array<double,3> alpha_param = {3.,5.,7.};
-    /*
+    
     for (int i = 0; i < alpha_param.size(); i++)
     {
         vector<double> cochain;
@@ -165,21 +173,21 @@ int main()
             Solution[BoundaryNodesIndices[i]] += h_values[i]*HodgeCorrection;
         }
         
-        string adress = "Solutions/SolFor" + to_string(alpha);
+        string adress = "Solutions/SolRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
         ofstream out{adress};
         for (int j = 0; j < Solution.size(); j++)
         {
             out << Solution[j] << endl;
         }
-        string Erradress = "Solutions/ErrorFor" + to_string(alpha);
+        string Erradress = "Solutions/ErrorRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
         ofstream ErrOut{Erradress};
         for (int j = 0; j < Solution.size(); j++)
         {
-            ErrOut << Solution[j] - (alpha*pow(V[j][0]-0.5,alpha-1.)+(alpha-1.)*pow(V[j][1],alpha-2.)) << endl;
+            ErrOut << Solution[j] - (alpha*pow(V[j][0]-0.5,alpha-1.)+1.) << endl;
         }
         
     }
-    */
+    }
     
 
 
