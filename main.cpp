@@ -197,6 +197,9 @@ int main()
 
     /*
     4. Solving the System
+        includes:
+        - converting own format to alglib format
+        - choose according solver function and run
     */
 
 
