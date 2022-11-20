@@ -40,8 +40,8 @@ double SourceField( array<double,2> position )
 
 int main()
 {
-    vector<int> RingNumber = {1,2,3,4,5};               //different parameters for meshresolution
-    array<double,3> alpha_param = {2.,3.,4.};           //different parameters for field exponent
+    vector<int> RingNumber = {1,2,3,4,5,6,7};               //different parameters for meshresolution
+    vector<double> alpha_param = {1.,2.,3.,4.,5.,6.,7.,8.};           //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
     int n_max = RingNumber[n];
@@ -102,6 +102,8 @@ int main()
     //normal divergence operator
     Sparse DIV = SparseInvMM( Hodge0 , SparseMM( MinusPrimalBoundary1 , Hodge1 , V.size() , E.size() ) , V.size() , E.size() );
     //WriteSparse( "Solutions/DiscreteDivergenceOperator.txt" , DIV , V.size() , E.size() );
+    //modified divergence operator
+    Sparse ModDiv = SparseMM( MinusPrimalBoundary1 , Hodge1 , V.size() , E.size() );
     
     /*
     3. Problem input
@@ -165,20 +167,22 @@ int main()
         }
         
         
-        vector<double> Solution = SparseVecMR( DIV , cochain , V.size() );
-        
+        vector<double> Solution = SparseVecMR( ModDiv , cochain , V.size() );
+        //Doing the flux correction over the boundary of the domain
         for (int i = 0; i < BoundaryNodesIndices.size(); i++)
         {
-            double HodgeCorrection = 1/(FindEntryij( i , i , Hodge0 ));
+            double HodgeCorrection = 1;//(FindEntryij( i , i , Hodge0 ));
             Solution[BoundaryNodesIndices[i]] += h_values[i]*HodgeCorrection;
         }
         
+        //writing the solution to file
         string adress = "Solutions/SolRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
         ofstream out{adress};
         for (int j = 0; j < Solution.size(); j++)
         {
             out << Solution[j] << endl;
         }
+        //calculate error to analytical divergence on the node and write to file
         string Erradress = "Solutions/ErrorRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
         ofstream ErrOut{Erradress};
         for (int j = 0; j < Solution.size(); j++)
