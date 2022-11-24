@@ -151,3 +151,24 @@ for (int i = 0; i < n+1; i++)
 
 }
 }
+
+vector<array<double,2>> GetCircDualVertices( vector<array<double,2>> V , vector<array<int,3>> F )
+{
+    vector<array<double,2>> CircDualVertices;
+    for (int i = 0; i < F.size(); i++)
+    {
+        array<double,2> circumcenter = circumcenter2D( F[i] , V );
+        CircDualVertices.push_back( circumcenter );
+    }
+    
+}
+
+vector<array<int,2>> GetCircDualEdges( vector<array<double,2>> V , vector<array<int,2>> E )
+{
+    
+}
+
+vector<vector<int>> GetCircDualFaces( vector<array<double,2>> V , vector<array<int,2>> E )
+{
+
+}

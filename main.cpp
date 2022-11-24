@@ -12,13 +12,33 @@
 #include "headers/OpConstruct/BoundConstruct.h"
 #include "headers/OpConstruct/DiagonalHodge.h"
 #include "headers/Meshing/BoundaryElements.h"
+//Preamble for alglib library
+#include "headers/AlgLib/solvers.h"
+#include "headers/AlgLib/stdafx.h"
+#include "headers/AlgLib/ap.h"
+#include "headers/AlgLib/linalg.h"
 
 
 
 array<double,2> Field( array<double,2> position , double alpha )
 {
-    array<double,2> Value = { pow( (position[0]) , alpha ), position[1] };
+    /*double r = distance(position, array<double,2> {0.5,0.5});
+    double F_x;
+    double F_y;
+    if ( position[0]==0.5 && position[1]==0.5 )
+    {
+        F_x = 10000.;
+        F_y = 10000.;
+    }
+    else
+    {   
+        F_x = position[0]/(r*r);
+        F_y = position[1]/(r*r);
+    } 
+    array<double,2> Value = { 2*M_PI*F_x, 2*M_PI*F_y };*/
+    array<double,2> Value = { pow(position[0],alpha) , position[1] };
     return Value;
+    
 }
 
 double SourceField( array<double,2> position )
@@ -26,6 +46,15 @@ double SourceField( array<double,2> position )
     double x = position[0];
     double y = position[1];
     double Val;
+    if ( x == 0.5 && y == 0.5 )
+    {
+        Val = 10;
+    }
+    else
+    {
+        Val = 0;
+    }
+    /*
     if ( distance(position, array<double,2> {.5,.5}) < 0.1 )
     {
         Val = 1;
@@ -34,14 +63,15 @@ double SourceField( array<double,2> position )
     {
         Val = 0;
     }
+    */
     return Val;
 }
 
 
 int main()
 {
-    vector<int> RingNumber = {1,2,3,4,5,6,7};               //different parameters for meshresolution
-    vector<double> alpha_param = {1.,2.,3.,4.,5.,6.,7.,8.};           //different parameters for field exponent
+    vector<int> RingNumber = {1};               //different parameters for meshresolution
+    vector<double> alpha_param = {3.};           //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
     int n_max = RingNumber[n];
@@ -112,6 +142,9 @@ int main()
         - generating and/or reading boundary conditions
         - generating and/or reading function data on interior
     */
+
+    double alpha = 2.;
+    //getting all the boundary elements
     vector<int> BoundaryEdgesIndices = GetBoundaryEdgesIndices( E.size() , PrimalBoundary2 );
     vector<array<int,2>> BoundaryEdges;
     for (int i = 0; i < BoundaryEdgesIndices.size(); i++)
@@ -120,91 +153,49 @@ int main()
     }
     vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
     
+    //getting the boundary condition (flux)
+    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field , alpha );
 
-    //loop over different fields
-    
-    for (int i = 0; i < alpha_param.size(); i++)
-    {
-        vector<double> cochain;
-        double alpha = alpha_param[i];
-        for (int j = 0; j < E.size(); j++)
-        {   
-            array<double,2> initial_point = V[E[j][0]];
-            array<double,2> final_point = V[E[j][1]];
-            cochain.push_back( LineIntegral( Field , alpha , initial_point , final_point ));
-        }
-
-        vector<double> h_values;
-        for (int j = 0; j < BoundaryNodesIndices.size(); j++)
-        {   
-            int index = BoundaryNodesIndices[j];
-            vector<array<double,2>> NodesOfBoundary;
-            //find start point of boundary of dual cell of node "index"
-            for (int  k = 0; k < BoundaryEdges.size(); k++)
-            {
-                if ( BoundaryEdges[k][1]==index )
-                {
-                    array<double,2> edge_vector = { V[index][0]-V[BoundaryEdges[k][0]][0] , V[index][1]-V[BoundaryEdges[k][0]][1] };
-                    array<double,2> initial_point = { V[BoundaryEdges[k][0]][0]+edge_vector[0]/2 , V[BoundaryEdges[k][0]][1]+edge_vector[1]/2 };
-                    NodesOfBoundary.push_back( initial_point );
-                    break;
-                } 
-            }
-            //find end point of boundary of dual cell of node "index"
-            for (int k = 0; k < BoundaryEdges.size(); k++)
-            {
-                if ( BoundaryEdges[k][0]==index)
-                {
-                    array<double,2> edge_vector = { V[BoundaryEdges[k][1]][0]-V[index][0] , V[BoundaryEdges[k][1]][1]-V[index][1] };
-                    array<double,2> final_point = { V[index][0]+edge_vector[0]/2 , V[index][1]+edge_vector[1]/2};
-                    NodesOfBoundary.push_back( final_point );
-                    break;
-                }
-            }
-            //calculate h value
-            h_values.push_back( LineFluxIntegral( Field , alpha , NodesOfBoundary[0] , V[index] ) + LineFluxIntegral( Field , alpha , V[index] , NodesOfBoundary[1] ));
-            
-        }
-        
-        
-        vector<double> Solution = SparseVecMR( ModDiv , cochain , V.size() );
-        //Doing the flux correction over the boundary of the domain
-        for (int i = 0; i < BoundaryNodesIndices.size(); i++)
-        {
-            double HodgeCorrection = 1;//(FindEntryij( i , i , Hodge0 ));
-            Solution[BoundaryNodesIndices[i]] += h_values[i]*HodgeCorrection;
-        }
-        
-        //writing the solution to file
-        string adress = "Solutions/SolRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
-        ofstream out{adress};
-        for (int j = 0; j < Solution.size(); j++)
-        {
-            out << Solution[j] << endl;
-        }
-        //calculate error to analytical divergence on the node and write to file
-        string Erradress = "Solutions/ErrorRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
-        ofstream ErrOut{Erradress};
-        for (int j = 0; j < Solution.size(); j++)
-        {
-            ErrOut << Solution[j] - (alpha*pow(V[j][0]-0.5,alpha-1.)+1.) << endl;
-        }
-        
+    //discretizing the forms
+    vector<double> cochain;
+    for (int j = 0; j < E.size(); j++)
+    {   
+        array<double,2> initial_point = V[E[j][0]];
+        array<double,2> final_point = V[E[j][1]];
+        cochain.push_back( LineIntegral( Field , alpha , initial_point , final_point ));
     }
-    }
-    
-
 
     /*
     4. Solving the System
         includes:
+        - vector algebra in own sparse format
         - converting own format to alglib format
         - choose according solver function and run
     */
+    vector<double> LhsDivTheoPointwise = SparseVecMR( ModDiv , cochain , V.size() );
+    double Lhs = 0;
+    for (int i = 0; i < LhsDivTheoPointwise.size(); i++)
+    {
+        Lhs += LhsDivTheoPointwise[i];
+    }
+    //Lhs = Lhs*3.*pow(3.,0.5)/8;
+    
+    double Rhs = 0;
+    for (int i = 0; i < FluxCorrection.size(); i++)
+    {
+        Rhs += FluxCorrection[i];
+    }
+    cout << Rhs << " " << Lhs << " " << Rhs - Lhs << endl;
+    
 
 
 
     /*
     5. Writing to file
     */
+    
+    
+    }
+
+
 }

@@ -1,0 +1,167 @@
+    //loop over different fields
+    
+    for (int i = 0; i < alpha_param.size(); i++)
+    {
+        vector<double> cochain;
+        double alpha = alpha_param[i];
+        for (int j = 0; j < E.size(); j++)
+        {   
+            array<double,2> initial_point = V[E[j][0]];
+            array<double,2> final_point = V[E[j][1]];
+            cochain.push_back( LineIntegral( Field , alpha , initial_point , final_point ));
+        }
+
+        vector<double> h_values;
+        for (int j = 0; j < BoundaryNodesIndices.size(); j++)
+        {   
+            int index = BoundaryNodesIndices[j];
+            vector<array<double,2>> NodesOfBoundary;
+            //find start point of boundary of dual cell of node "index"
+            for (int  k = 0; k < BoundaryEdges.size(); k++)
+            {
+                if ( BoundaryEdges[k][1]==index )
+                {
+                    array<double,2> edge_vector = { V[index][0]-V[BoundaryEdges[k][0]][0] , V[index][1]-V[BoundaryEdges[k][0]][1] };
+                    array<double,2> initial_point = { V[BoundaryEdges[k][0]][0]+edge_vector[0]/2 , V[BoundaryEdges[k][0]][1]+edge_vector[1]/2 };
+                    NodesOfBoundary.push_back( initial_point );
+                    break;
+                } 
+            }
+            //find end point of boundary of dual cell of node "index"
+            for (int k = 0; k < BoundaryEdges.size(); k++)
+            {
+                if ( BoundaryEdges[k][0]==index)
+                {
+                    array<double,2> edge_vector = { V[BoundaryEdges[k][1]][0]-V[index][0] , V[BoundaryEdges[k][1]][1]-V[index][1] };
+                    array<double,2> final_point = { V[index][0]+edge_vector[0]/2 , V[index][1]+edge_vector[1]/2};
+                    NodesOfBoundary.push_back( final_point );
+                    break;
+                }
+            }
+            //calculate h value
+            h_values.push_back( LineFluxIntegral( Field , alpha , NodesOfBoundary[0] , V[index] ) + LineFluxIntegral( Field , alpha , V[index] , NodesOfBoundary[1] ));
+            
+        }
+        int NumberInnerNodes = V.size() - BoundaryNodesIndices.size();
+        
+        
+        vector<double> Solution = SparseVecMR( DIV , cochain , V.size() );
+        
+        
+        //Calculating the flux for each 
+        vector<double> FluxByBoundary;
+        vector<double> StarF;
+        for (int i = 0; i < E.size(); i++)
+        {
+            StarF.push_back(FindEntryij(i,i,Hodge1)*cochain[i]);
+        }
+        for (int i = 0; i < V.size(); i++)
+        {
+            vector<int> Bound_row_i;
+            for (int j = 0; j < E.size(); j++)
+            {
+                Bound_row_i.push_back(int(FindEntryij(j,i,PrimalBoundary1)));               
+            }
+            double Flux_i = 0;
+            for (int j = 0; j < E.size(); j++)
+            {
+                if ( Bound_row_i[j] != 0)
+                {
+                    Flux_i += double(Bound_row_i[j])*StarF[j];
+                }
+                
+            }
+            double New = 0;
+            if ( i >= V.size()-BoundaryNodesIndices.size() )
+            {
+                New = (Flux_i + h_values[i])/FindEntryij(i,i,Hodge0);        //flux correction and Hodge scaling (boundary node)
+            }
+            else
+            {
+                New = Flux_i / FindEntryij(i,i,Hodge0);                      //Hodge scaling but no flux correction (inner node)
+            }            
+            FluxByBoundary.push_back( New );
+        }
+    
+        //writing the solution to file
+        string adress = "Solutions/SolRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
+        ofstream out{adress};
+        for (int j = 0; j < Solution.size(); j++)
+        {
+            out << Solution[j] << endl;
+        }
+        //calculate error to discrete divergence theorem on the node and write to file
+        string Erradress = "Solutions/ErrorRing" + to_string(n_max)+ "Field" + to_string(int(alpha));
+        ofstream ErrOut{Erradress};
+        for (int j = 0; j < Solution.size(); j++)
+        {
+            ErrOut << Solution[j] - FluxByBoundary[j] << endl;
+        }
+        //calculation for whole complex and print
+        double Val1 = 0;
+        double Val2 = 0;
+        for (int i = 0; i < V.size(); i++)
+        {
+            Val1 += Solution[i];
+            Val2 += FluxByBoundary[i];
+        }
+        cout << "error for whole complex divergence theorem is: <divX,C> - 1/V <*X,partial(C)> = " << Val1-Val2 << endl;
+
+        //calculate difference from stokes theorem
+        //string TheoremAdress = "Solutions/ErrorTheoremRing" + to_string(n_max) + "Field" +to_string(int(alpha)) + ".txt";
+        //ofstream TheoOut{TheoremAdress};
+        //for (int i = 0; i < BoundaryNodesIndices.size(); i++)
+        //{
+        //    int NodeIndex = BoundaryNodesIndices[i];
+        //    TheoOut << Solution[i]-
+        //}
+        
+        
+
+alglib::sparsematrix A;
+    alglib::sparsecreate( V.size() , V.size() , A );
+    for (int i = 0; i < L.column.size(); i++)
+    {
+        alglib::sparseset(A, L.rows[i], L.column[i], L.values[i]);
+    }
+    
+
+    alglib::sparseconverttocrs(A);
+
+    //rigth side
+    alglib::real_1d_array b;
+    
+    b.setlength( V.size() );
+    for (int i = 0; i < V.size(); i++)
+    {  
+        double b_i = 0;
+        double H_i = FindEntryij(i,i,Hodge0);
+        b_i += SourceField(V[i])*H_i;
+        
+        if (i >= NumberInnerNodes)
+        {
+            b_i += h_values[i-NumberInnerNodes];
+        }
+        
+    
+    }
+    
+    alglib::linlsqrstate s;
+    alglib::linlsqrreport rep;
+    alglib::real_1d_array x;
+    alglib::linlsqrcreate( V.size() , V.size() , s);
+    alglib::linlsqrsolvesparse( s , A , b);
+    alglib::linlsqrresults( s , x , rep );
+    
+    
+
+
+
+ofstream sol{"Solutions/LaplaceSolutionRing"+to_string(n_max)+".txt"};
+    for (int i = 0; i < x.length(); i++)
+    {
+        sol << x[i] << endl;
+    }
+    
+    }
+    }

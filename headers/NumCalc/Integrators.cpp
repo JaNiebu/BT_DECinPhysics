@@ -29,3 +29,41 @@ double LineFluxIntegral( function< array<double,2>(array<double,2>,double)> fiel
     return value;
     
 }
+
+vector<double> GetFluxCorrection( vector<int> BoundaryNodesIndices , vector<array<int,2>> BoundaryEdges , vector<array<double,2>> V , function< array<double,2>(array<double,2>,double)> Field , double alpha  )
+{
+    vector<double> h_values;
+        for (int j = 0; j < BoundaryNodesIndices.size(); j++)
+        {   
+            int index = BoundaryNodesIndices[j];
+            vector<array<double,2>> NodesOfBoundary;
+            //find start point of boundary of dual cell of node "index"
+            for (int  k = 0; k < BoundaryEdges.size(); k++)
+            {
+                if ( BoundaryEdges[k][1]==index )
+                {
+                    array<double,2> edge_vector = { V[index][0]-V[BoundaryEdges[k][0]][0] , V[index][1]-V[BoundaryEdges[k][0]][1] };
+                    array<double,2> initial_point = { V[BoundaryEdges[k][0]][0]+edge_vector[0]/2 , V[BoundaryEdges[k][0]][1]+edge_vector[1]/2 };
+                    NodesOfBoundary.push_back( initial_point );
+                    break;
+                } 
+            }
+            //find end point of boundary of dual cell of node "index"
+            for (int k = 0; k < BoundaryEdges.size(); k++)
+            {
+                if ( BoundaryEdges[k][0]==index)
+                {
+                    array<double,2> edge_vector = { V[BoundaryEdges[k][1]][0]-V[index][0] , V[BoundaryEdges[k][1]][1]-V[index][1] };
+                    array<double,2> final_point = { V[index][0]+edge_vector[0]/2 , V[index][1]+edge_vector[1]/2};
+                    NodesOfBoundary.push_back( final_point );
+                    break;
+                }
+            }
+            //calculate h value
+            h_values.push_back( LineFluxIntegral( Field , alpha , NodesOfBoundary[0] , V[index] ) + LineFluxIntegral( Field , alpha , V[index] , NodesOfBoundary[1] ));
+            
+        }
+    return h_values;
+}
+
+

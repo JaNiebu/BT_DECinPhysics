@@ -19,7 +19,7 @@
 #include "../Headers/sparseMMT.h"
 #include "../Headers/sparseMM.h"
 
-using namespace std;
+using namespace std; 
 
 double boundaryCondition( array<double,2> X )
 {

@@ -135,6 +135,8 @@ Sparse SparseInvMM( Sparse A, Sparse B, int n, int m)
 
 vector<double> SparseVecMR( Sparse A , vector<double> x , int n )
 {
+    //function for Matrix-Vector product of form A*x in Sparse format
+    //n is dimension of image i.e. number of rows
     vector<double> y;
     for (int i = 0; i < n; i++)
     {
