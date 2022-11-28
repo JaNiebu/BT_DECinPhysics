@@ -70,8 +70,8 @@ double SourceField( array<double,2> position )
 
 int main()
 {
-    vector<int> RingNumber = {1};               //different parameters for meshresolution
-    vector<double> alpha_param = {3.};           //different parameters for field exponent
+    vector<int> RingNumber = {1};                       //different parameters for meshresolution
+    vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
     int n_max = RingNumber[n];
@@ -165,6 +165,16 @@ int main()
         cochain.push_back( LineIntegral( Field , alpha , initial_point , final_point ));
     }
 
+    //discretizing the normal flux
+    vector<double> StarCochain;
+    for (int j = 0; j < E.size(); j++)
+    {
+        array<double,2> initial_point = V[E[j][0]];
+        array<double,2> final_point = V[E[j][1]];
+        StarCochain.push_back( LineFluxIntegral( Field , alpha , initial_point , final_point ));
+    }
+    
+
     /*
     4. Solving the System
         includes:
@@ -172,6 +182,14 @@ int main()
         - converting own format to alglib format
         - choose according solver function and run
     */
+    vector<double> Complex = {1,0,0,0,0,0,0};
+    vector<double> A = SparseVecMR(SparseMM(Hodge1,MinusPrimalBoundary1,E.size(),V.size()), Complex, V.size()); 
+    double Val = 0;
+    for (int i = 0; i < A.size(); i++)
+    {
+        Val += A[i]*cochain[i];
+    }
+    cout << Val << endl;
     vector<double> LhsDivTheoPointwise = SparseVecMR( ModDiv , cochain , V.size() );
     double Lhs = 0;
     for (int i = 0; i < LhsDivTheoPointwise.size(); i++)
@@ -179,20 +197,75 @@ int main()
         Lhs += LhsDivTheoPointwise[i];
     }
     //Lhs = Lhs*3.*pow(3.,0.5)/8;
+    vector<double> StarF = SparseVecMR( Hodge1 , cochain , E.size() );
+    vector<double> RhsDivTheoPointwise;
+    for (int i = 0; i < V.size(); i++)
+    {
+        //get i-th row of Bound1 <=> i-th column of d^0
+        vector<double> Row_i = GetRow( i , PrimalBoundary1 , E.size() );
+        double Entry_i;
+        for (int j = 0; j < E.size(); j++)
+        {
+            if ( Row_i[j]!=0 )
+            {
+                Entry_i += Row_i[j]*StarF[j];
+            }
+            
+        }
+        RhsDivTheoPointwise.push_back( Entry_i );
+
+    }
     
-    double Rhs = 0;
+    /*for (int i = 0; i < BoundaryNodesIndices.size(); i++)
+    {
+        int Index = BoundaryNodesIndices[i];
+        RhsDivTheoPointwise[Index] += FluxCorrection[i];
+    }*/
+    
+
+    vector<double> NewLhs = SparseVecMR( MinusPrimalBoundary1 , StarCochain , V.size() );
+    vector<double> NewRhs;
+    for (int i = 0; i < V.size(); i++)
+    {
+        //get i-th row of Bound1 <=> i-th column of d^0
+        vector<double> Row_i = GetRow( i , PrimalBoundary1 , E.size() );
+        double Entry_i;
+        for (int j = 0; j < E.size(); j++)
+        {
+            if ( Row_i[j]!=0 )
+            {
+                Entry_i += Row_i[j]*StarCochain[j];
+            }
+            
+        }
+        NewRhs.push_back( Entry_i );
+
+    }
+    
+
+    /*double Rhs = 0;
     for (int i = 0; i < FluxCorrection.size(); i++)
     {
         Rhs += FluxCorrection[i];
     }
     cout << Rhs << " " << Lhs << " " << Rhs - Lhs << endl;
-    
+    */
 
 
 
     /*
     5. Writing to file
     */
+   ofstream DivTheoErr{"Solutions/TheoremError.txt"};
+    for (int i = 0; i < RhsDivTheoPointwise.size(); i++)
+    {
+        DivTheoErr << RhsDivTheoPointwise[i]-LhsDivTheoPointwise[i] << endl;
+    }
+    ofstream NewErr{"Solutions/NewTheoremError.txt"};
+    for (int i = 0; i < NewRhs.size(); i++)
+    {
+        NewErr << NewRhs[i]-NewLhs[i] << endl;
+    }
     
     
     }

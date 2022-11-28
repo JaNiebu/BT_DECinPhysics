@@ -12,4 +12,6 @@ struct Sparse
 
 double FindEntryij( int i , int j , Sparse A );
 
+vector<double> GetRow( int IndexRow , Sparse Matrix , int TopDimension );
+
 #endif
