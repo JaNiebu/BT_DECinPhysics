@@ -48,11 +48,11 @@ double SourceField( array<double,2> position )
     double Val;
     if ( x == 0.5 && y == 0.5 )
     {
-        Val = 10;
+        Val = 1000.;
     }
     else
     {
-        Val = 0;
+        Val = 0.;
     }
     /*
     if ( distance(position, array<double,2> {.5,.5}) < 0.1 )
@@ -70,7 +70,7 @@ double SourceField( array<double,2> position )
 
 int main()
 {
-    vector<int> RingNumber = {1};                       //different parameters for meshresolution
+    vector<int> RingNumber = {1,2,3,4};                       //different parameters for meshresolution
     vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
@@ -163,7 +163,24 @@ int main()
         array<double,2> initial_point = V[E[j][0]];
         array<double,2> final_point = V[E[j][1]];
         cochain.push_back( LineIntegral( Field , alpha , initial_point , final_point ));
+        /*if ( j==0 )
+        {
+        cout << "initial point " << initial_point[0] << " " << initial_point[1] << endl;
+        cout << "final point " << final_point[0] << " " << final_point[1] << endl;
+        cout << "integral value " << cochain[j] << endl;
+        }*/
     }
+    vector<double> ModifiedSourceTerm;
+    for (int j = 0; j < V.size(); j++)
+    {
+        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField(V[j]) );
+    }
+    for (int j = 0; j < FluxCorrection.size(); j++)
+    {
+        ModifiedSourceTerm[BoundaryNodesIndices[j]] -= FluxCorrection[j];
+    }
+    
+    
 
     //discretizing the normal flux
     vector<double> StarCochain;
@@ -182,7 +199,47 @@ int main()
         - converting own format to alglib format
         - choose according solver function and run
     */
-    vector<double> Complex = {1,0,0,0,0,0,0};
+    //Poisson problem -- dirichlet
+    alglib::sparsematrix AlgLibL;
+    int NumberOfNodes = V.size();
+    alglib::sparsecreate(V.size(),V.size(), AlgLibL) ;
+    for (int i = 0; i < L.column.size(); i++)
+    {
+        alglib::sparseset( AlgLibL , L.rows[i] , L.column[i] , L.values[i] );
+    }
+    alglib::sparseconverttocrs(AlgLibL);
+
+    alglib::real_1d_array b;
+    b.setlength(V.size());
+    for (int i = 0; i < ModifiedSourceTerm.size(); i++)
+    {
+        b(i) = ModifiedSourceTerm[i];
+    }
+   
+    alglib::linlsqrstate s;
+    alglib::linlsqrreport rep;
+    alglib::real_1d_array x;
+    alglib::linlsqrcreate(V.size(), V.size(), s);
+    alglib::linlsqrsolvesparse(s, AlgLibL, b);
+    alglib::linlsqrresults(s, x, rep);
+
+    ofstream Poisson{"Solutions/PoissonSolutionRing"+to_string(n_max)+".txt"};
+    for (int i = 0; i < V.size(); i++)
+    {
+        Poisson << x(i) << endl;
+    }
+    
+  
+
+
+
+    vector<double> Complex;
+    Complex.push_back(1.);
+    for (int  i= 1; i < V.size(); i++)
+    {
+        Complex.push_back(0.);
+    }
+    
     vector<double> A = SparseVecMR(SparseMM(Hodge1,MinusPrimalBoundary1,E.size(),V.size()), Complex, V.size()); 
     double Val = 0;
     for (int i = 0; i < A.size(); i++)
