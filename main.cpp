@@ -54,7 +54,7 @@ double SourceField( array<double,2> position )
     }
     else
     {
-        Val = 1/pow(r,3.);
+        Val = 1./pow(r,3.);
     }
     /*
     if ( distance(position, array<double,2> {.5,.5}) < 0.1 )
@@ -112,7 +112,7 @@ double SourceField2( array<double,2> position )
 
 int main()
 {
-    vector<int> RingNumber = {20};                       //different parameters for meshresolution
+    vector<int> RingNumber = {1,2,3,4};                       //different parameters for meshresolution
     vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
@@ -168,6 +168,8 @@ int main()
     Sparse Hodge1 = DiagHodge1D( V , E , F );
     //WriteSparse( "Solutions/DiagHodge1Operator.txt" , Hodge1 , E.size() , E.size() );
 
+    //Full Laplace
+    Sparse Laplace = SparseInvMM( Hodge0 , SparseMM( MinusPrimalBoundary1 , SparseMMT( Hodge1 , PrimalBoundary1,E.size(),E.size() ), V.size(), E.size() ) , V.size() , V.size() );
     //modified laplace operator
     Sparse L = SparseMM( MinusPrimalBoundary1 , SparseMMT( Hodge1 , PrimalBoundary1,E.size(),E.size() ), V.size(), E.size());
     //WriteSparse( "Solutions/ModifiedLaplaceOperator.txt" , L , V.size() , V.size() );
@@ -253,7 +255,7 @@ int main()
     alglib::sparsecreate(V.size(),V.size(), AlgLibL) ;
     for (int i = 0; i < L.column.size(); i++)
     {
-        alglib::sparseset( AlgLibL , L.rows[i] , L.column[i] , L.values[i] );
+        alglib::sparseset( AlgLibL , L.rows[i] , L.column[i] , -1.*L.values[i] );
     }
     alglib::sparseconverttocrs(AlgLibL);
 
