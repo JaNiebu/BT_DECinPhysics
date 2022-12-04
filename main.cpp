@@ -22,37 +22,39 @@
 
 array<double,2> Field( array<double,2> position , double alpha )
 {
-    /*double r = distance(position, array<double,2> {0.5,0.5});
+    double r = distance(position, array<double,2> {0.5,0.5});
     double F_x;
     double F_y;
     if ( position[0]==0.5 && position[1]==0.5 )
     {
-        F_x = 10000.;
-        F_y = 10000.;
+        F_x = 0.;
+        F_y = 0.;
+        cout << "singular point" << endl;
     }
     else
     {   
-        F_x = position[0]/(r*r);
-        F_y = position[1]/(r*r);
+        F_x = -1.*(position[0]-.5)/(pow(r,3.));
+        F_y = -1.*(position[1]-.5)/(pow(r,3.));
     } 
-    array<double,2> Value = { 2*M_PI*F_x, 2*M_PI*F_y };*/
-    array<double,2> Value = { pow(position[0],alpha) , position[1] };
+    array<double,2> Value = { 2*M_PI*F_x, 2*M_PI*F_y };
+    //array<double,2> Value = { pow(position[0],alpha) , position[1] };
     return Value;
     
 }
 
 double SourceField( array<double,2> position )
 {
+    double r = distance(position, array<double,2> {0.5,0.5});
     double x = position[0];
     double y = position[1];
     double Val;
     if ( x == 0.5 && y == 0.5 )
     {
-        Val = 1000.;
+        Val = 100.;
     }
     else
     {
-        Val = 0.;
+        Val = 1/pow(r,3.);
     }
     /*
     if ( distance(position, array<double,2> {.5,.5}) < 0.1 )
@@ -67,10 +69,50 @@ double SourceField( array<double,2> position )
     return Val;
 }
 
+array<double,2> Field2( array<double,2> position , double alpha )
+{
+    double r = distance(position, array<double,2> {0.5,0.5});
+    double R = 0.2;
+    double F_x;
+    double F_y;
+    double sigma = 10.;
+    if ( r <= R )
+    {
+        F_x = 2.*sigma*(position[0]-.5)/(pow(R,2.));
+        F_y = 2.*sigma*(position[1]-.5)/(pow(R,2.));
+    }
+    else
+    {
+        F_x = 2.*sigma*(position[0]-.5)/(pow(r,2.));
+        F_y = 2.*sigma*(position[1]-.5)/(pow(r,2.));
+    }
+    return array<double,2> {F_x , F_y};
+    
+    
+}
+
+double SourceField2( array<double,2> position )
+{
+    double r = distance(position, array<double,2> {0.5,0.5});
+    double R = 0.2;
+    double sigma = 10.;
+    double Value;
+    if ( r <= R )
+    {
+        Value = sigma;
+    }
+    else
+    {
+        Value = 0.;
+    }
+    return Value;
+    
+    
+}
 
 int main()
 {
-    vector<int> RingNumber = {1,2,3,4};                       //different parameters for meshresolution
+    vector<int> RingNumber = {20};                       //different parameters for meshresolution
     vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
@@ -154,30 +196,36 @@ int main()
     vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
     
     //getting the boundary condition (flux)
-    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field , alpha );
-
+    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field2 , alpha );
+    double Flux = 0;
+    for (int i = 0; i < FluxCorrection.size(); i++)
+    {
+        Flux += FluxCorrection[i];
+    }
+    cout << "Sum of boundaryfluxes is " << Flux << endl;
+    
     //discretizing the forms
-    vector<double> cochain;
+    /*vector<double> cochain;
     for (int j = 0; j < E.size(); j++)
     {   
         array<double,2> initial_point = V[E[j][0]];
         array<double,2> final_point = V[E[j][1]];
         cochain.push_back( LineIntegral( Field , alpha , initial_point , final_point ));
-        /*if ( j==0 )
+        if ( j==0 )
         {
         cout << "initial point " << initial_point[0] << " " << initial_point[1] << endl;
         cout << "final point " << final_point[0] << " " << final_point[1] << endl;
         cout << "integral value " << cochain[j] << endl;
-        }*/
-    }
+        }
+    }*/
     vector<double> ModifiedSourceTerm;
     for (int j = 0; j < V.size(); j++)
     {
-        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField(V[j]) );
+        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField2(V[j]) );
     }
     for (int j = 0; j < FluxCorrection.size(); j++)
     {
-        ModifiedSourceTerm[BoundaryNodesIndices[j]] -= FluxCorrection[j];
+        ModifiedSourceTerm[BoundaryNodesIndices[j]] += -1.*FluxCorrection[j];
     }
     
     
@@ -188,7 +236,7 @@ int main()
     {
         array<double,2> initial_point = V[E[j][0]];
         array<double,2> final_point = V[E[j][1]];
-        StarCochain.push_back( LineFluxIntegral( Field , alpha , initial_point , final_point ));
+        StarCochain.push_back( LineFluxIntegral( Field2 , alpha , initial_point , final_point ));
     }
     
 
@@ -233,7 +281,7 @@ int main()
 
 
 
-    vector<double> Complex;
+    /*vector<double> Complex;
     Complex.push_back(1.);
     for (int  i= 1; i < V.size(); i++)
     {
@@ -271,7 +319,7 @@ int main()
         }
         RhsDivTheoPointwise.push_back( Entry_i );
 
-    }
+    }*/
     
     /*for (int i = 0; i < BoundaryNodesIndices.size(); i++)
     {
@@ -280,7 +328,7 @@ int main()
     }*/
     
 
-    vector<double> NewLhs = SparseVecMR( MinusPrimalBoundary1 , StarCochain , V.size() );
+    /*vector<double> NewLhs = SparseVecMR( MinusPrimalBoundary1 , StarCochain , V.size() );
     vector<double> NewRhs;
     for (int i = 0; i < V.size(); i++)
     {
@@ -297,7 +345,7 @@ int main()
         }
         NewRhs.push_back( Entry_i );
 
-    }
+    }*/
     
 
     /*double Rhs = 0;
@@ -313,7 +361,7 @@ int main()
     /*
     5. Writing to file
     */
-   ofstream DivTheoErr{"Solutions/TheoremError.txt"};
+    /*ofstream DivTheoErr{"Solutions/TheoremError.txt"};
     for (int i = 0; i < RhsDivTheoPointwise.size(); i++)
     {
         DivTheoErr << RhsDivTheoPointwise[i]-LhsDivTheoPointwise[i] << endl;
@@ -322,7 +370,7 @@ int main()
     for (int i = 0; i < NewRhs.size(); i++)
     {
         NewErr << NewRhs[i]-NewLhs[i] << endl;
-    }
+    }*/
     
     
     }

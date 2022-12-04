@@ -22,7 +22,7 @@ double LineFluxIntegral( function< array<double,2>(array<double,2>,double)> fiel
     array<double,2> edgenormal = { final_point[1]-initial_point[1], -final_point[0]+initial_point[0] };
     for (int i = 0; i < precision; i++)
     {
-        array<double,2> position = { initial_point[0]+(i/precision)*edge[0], initial_point[1]+(i/precision)*edge[1] };
+        array<double,2> position = { initial_point[0]+((i+.5)/precision)*edge[0], initial_point[1]+((i+.5)/precision)*edge[1] };
 
         value +=  (field( position , alpha )[0]*edgenormal[0] + field( position , alpha )[1]*edgenormal[1])/precision;
     }  
