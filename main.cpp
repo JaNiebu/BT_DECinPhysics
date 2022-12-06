@@ -23,6 +23,7 @@
 array<double,2> Field( array<double,2> position , double alpha )
 {
     double r = distance(position, array<double,2> {0.5,0.5});
+    double sigma = 1.;
     double F_x;
     double F_y;
     double lambda = 1.;
@@ -36,8 +37,8 @@ array<double,2> Field( array<double,2> position , double alpha )
     }
     else
     {   
-        F_x = 2.*lambda*(position[0]-.5)/(pow(r,2.));
-        F_y = 2.*lambda*(position[1]-.5)/(pow(r,2.));
+        F_x = 2.*lambda*(position[0]-.5)/(sigma*pow(r,2.));
+        F_y = 2.*lambda*(position[1]-.5)/(sigma*pow(r,2.));
     } 
     array<double,2> Value = { F_x, F_y };
     //array<double,2> Value = { pow(position[0],alpha) , position[1] };
@@ -48,13 +49,12 @@ array<double,2> Field( array<double,2> position , double alpha )
 double SourceField( array<double,2> position )
 {
     double lambda = 1.;
-    double r = distance(position, array<double,2> {0.5,0.5});
     double x = position[0];
     double y = position[1];
     double Val;
     if ( x == 0.5 && y == 0.5 )
     {
-        Val = 4.*M_PI*lambda;
+        Val = 4.*M_PI*lambda*100.;
     }
     else
     {
@@ -76,20 +76,10 @@ double SourceField( array<double,2> position )
 array<double,2> Field2( array<double,2> position , double alpha )
 {
     double r = distance(position, array<double,2> {0.5,0.5});
+    double sigma = 1.;
     double R = 0.2;
-    double F_x;
-    double F_y;
-    double sigma = 10.;
-    if ( r <= R )
-    {
-        F_x = 2.*sigma*(position[0]-.5)/(pow(R,2.));
-        F_y = 2.*sigma*(position[1]-.5)/(pow(R,2.));
-    }
-    else
-    {
-        F_x = 2.*sigma*(position[0]-.5)/(pow(r,2.));
-        F_y = 2.*sigma*(position[1]-.5)/(pow(r,2.));
-    }
+    double F_x = 2.*sigma*exp(-1.*sigma*pow(r,2.))*(position[0]-.5);
+    double F_y = 2.*sigma*exp(-1.*sigma*pow(r,2.))*(position[1]-.5);
     return array<double,2> {F_x , F_y};
     
     
@@ -98,25 +88,34 @@ array<double,2> Field2( array<double,2> position , double alpha )
 double SourceField2( array<double,2> position )
 {
     double r = distance(position, array<double,2> {0.5,0.5});
-    double R = 0.2;
     double sigma = 10.;
-    double Value;
-    if ( r <= R )
-    {
-        Value = sigma;
-    }
-    else
-    {
-        Value = 0.;
-    }
+    double Value = 4.*sigma*exp(-1.*sigma*pow(r,2.))*(1.-1.*sigma*pow(r,2.));
     return Value;
+}
+
+array<double,2> Field3( array<double,2> position , double alpha )
+{
+    double r = distance(position, array<double,2> {0.5,0.5});
+    double sigma = 10.;
+    double R = 0.2;
+    double F_x = -2.*(position[0]-.5);
+    double F_y = -2.*(position[1]-.5);
+    return array<double,2> {F_x , F_y};
     
     
 }
 
+double SourceField3( array<double,2> position )
+{
+    double r = distance(position, array<double,2> {0.5,0.5});
+    double sigma = 10.;
+    double Value = -4.;
+    return Value;
+}
+
 int main()
 {
-    vector<int> RingNumber = {12};                       //different parameters for meshresolution
+    vector<int> RingNumber = {8};                       //different parameters for meshresolution
     vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
@@ -203,6 +202,11 @@ int main()
     
     //getting the boundary condition (flux)
     vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field , alpha );
+    for (int i = 0; i < FluxCorrection.size(); i++)
+    {
+        cout << "FluxCorrection " << i << " " << FluxCorrection[i] << endl;
+    }
+    
     double Flux = 0;
     for (int i = 0; i < FluxCorrection.size(); i++)
     {
@@ -276,6 +280,8 @@ int main()
     alglib::linlsqrcreate(V.size(), V.size(), s);
     alglib::linlsqrsolvesparse(s, AlgLibL, b);
     alglib::linlsqrresults(s, x, rep);
+
+    printf("%d\n", int(rep.terminationtype));
 
     ofstream Poisson{"Solutions/PoissonSolutionRing"+to_string(n_max)+".txt"};
     for (int i = 0; i < V.size(); i++)
