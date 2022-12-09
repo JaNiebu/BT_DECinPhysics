@@ -54,7 +54,7 @@ double SourceField( array<double,2> position )
     double Val;
     if ( x == 0.5 && y == 0.5 )
     {
-        Val = 4.*M_PI*lambda*100.;
+        Val = 4.*M_PI*lambda*1250.;
     }
     else
     {
@@ -76,7 +76,7 @@ double SourceField( array<double,2> position )
 array<double,2> Field2( array<double,2> position , double alpha )
 {
     double r = distance(position, array<double,2> {0.5,0.5});
-    double sigma = 1.;
+    double sigma = 10.;
     double R = 0.2;
     double F_x = 2.*sigma*exp(-1.*sigma*pow(r,2.))*(position[0]-.5);
     double F_y = 2.*sigma*exp(-1.*sigma*pow(r,2.))*(position[1]-.5);
@@ -201,7 +201,7 @@ int main()
     vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
     
     //getting the boundary condition (flux)
-    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field , alpha );
+    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field2 , alpha );
     for (int i = 0; i < FluxCorrection.size(); i++)
     {
         cout << "FluxCorrection " << i << " " << FluxCorrection[i] << endl;
@@ -231,7 +231,7 @@ int main()
     vector<double> ModifiedSourceTerm;
     for (int j = 0; j < V.size(); j++)
     {
-        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField(V[j]) );
+        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField2(V[j]) );
     }
     for (int j = 0; j < FluxCorrection.size(); j++)
     {
@@ -246,7 +246,7 @@ int main()
     {
         array<double,2> initial_point = V[E[j][0]];
         array<double,2> final_point = V[E[j][1]];
-        StarCochain.push_back( LineFluxIntegral( Field , alpha , initial_point , final_point ));
+        StarCochain.push_back( LineFluxIntegral( Field2 , alpha , initial_point , final_point ));
     }
     
 
