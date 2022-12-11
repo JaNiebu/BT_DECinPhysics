@@ -283,7 +283,7 @@ int main()
 
     printf("%d\n", int(rep.terminationtype));
 
-    ofstream Poisson{"Solutions/PoissonSolutionRing"+to_string(n_max)+".txt"};
+    ofstream Poisson{"Solutions/PoissonGaussSolutionRing"+to_string(n_max)+".txt"};
     for (int i = 0; i < V.size(); i++)
     {
         Poisson << x(i) << endl;
