@@ -115,7 +115,7 @@ double SourceField3( array<double,2> position )
 
 int main()
 {
-    vector<int> RingNumber = {8};                       //different parameters for meshresolution
+    vector<int> RingNumber = {6,8,10,11,12,13,14,16,18};                       //different parameters for meshresolution
     vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
@@ -202,17 +202,7 @@ int main()
     
     //getting the boundary condition (flux)
     vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field2 , alpha );
-    for (int i = 0; i < FluxCorrection.size(); i++)
-    {
-        cout << "FluxCorrection " << i << " " << FluxCorrection[i] << endl;
-    }
     
-    double Flux = 0;
-    for (int i = 0; i < FluxCorrection.size(); i++)
-    {
-        Flux += FluxCorrection[i];
-    }
-    cout << "Sum of boundaryfluxes is " << Flux << endl;
     
     //discretizing the forms
     /*vector<double> cochain;
