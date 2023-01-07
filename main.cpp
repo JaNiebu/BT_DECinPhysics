@@ -98,8 +98,8 @@ array<double,2> Field3( array<double,2> position , double alpha )
     double r = distance(position, array<double,2> {0.5,0.5});
     double sigma = 10.;
     double R = 0.2;
-    double F_x = -2.*(position[0]-.5);
-    double F_y = -2.*(position[1]-.5);
+    double F_x = -2.*sigma*(position[0]-.5);
+    double F_y = -2.*sigma*(position[1]-.5);
     return array<double,2> {F_x , F_y};
     
     
@@ -109,7 +109,7 @@ double SourceField3( array<double,2> position )
 {
     double r = distance(position, array<double,2> {0.5,0.5});
     double sigma = 10.;
-    double Value = -4.;
+    double Value = -4.*sigma;
     return Value;
 }
 
@@ -117,8 +117,8 @@ array<double,2> Field4( array<double,2> position , double alpha )
 {
     double r = distance(position, array<double,2> {0.5,0.5});
     double sigma = 10.;
-    double F_x = -3.*r*(position[0]-.5);
-    double F_y = -3.*r*(position[1]-.5);
+    double F_x = -3.*sigma*r*(position[0]-.5);
+    double F_y = -3.*sigma*r*(position[1]-.5);
     return array<double,2> {F_x , F_y};
     
     
@@ -128,7 +128,7 @@ double SourceField4( array<double,2> position )
 {
     double r = distance(position, array<double,2> {0.5,0.5});
     double sigma = 10.;
-    double Value = -9.*r;
+    double Value = -9.*sigma*r;
     return Value;
 }
 
@@ -220,7 +220,7 @@ int main()
     vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
     
     //getting the boundary condition (flux)
-    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field4 , alpha );
+    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field3 , alpha );
     
     
     //discretizing the forms
@@ -240,7 +240,7 @@ int main()
     vector<double> ModifiedSourceTerm;
     for (int j = 0; j < V.size(); j++)
     {
-        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField4(V[j]) );
+        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField3(V[j]) );
     }
     for (int j = 0; j < FluxCorrection.size(); j++)
     {
@@ -255,7 +255,7 @@ int main()
     {
         array<double,2> initial_point = V[E[j][0]];
         array<double,2> final_point = V[E[j][1]];
-        StarCochain.push_back( LineFluxIntegral( Field4 , alpha , initial_point , final_point ));
+        StarCochain.push_back( LineFluxIntegral( Field3 , alpha , initial_point , final_point ));
     }
     
 
@@ -292,7 +292,7 @@ int main()
 
     printf("%d\n", int(rep.terminationtype));
 
-    ofstream Poisson{"Solutions/PoissonCubeSolutionRing"+to_string(n_max)+".txt"};
+    ofstream Poisson{"Solutions/PoissonHarmSolutionRing"+to_string(n_max)+".txt"};
     for (int i = 0; i < V.size(); i++)
     {
         Poisson << x(i) << endl;
