@@ -132,9 +132,65 @@ double SourceField4( array<double,2> position )
     return Value;
 }
 
+array<double,2> Field5( array<double,2> position , double alpha )
+{
+    double r = distance(position, array<double,2> {0.65,0.65});
+    double F_x;
+    double F_y;
+    if ( r<=0.15 )
+    {
+        F_x = 0.;
+        F_y = 0.;
+    }
+    
+    else
+    {
+        F_x = 0.15*pow(r,-2.)*(position[0]-0.65);
+        F_y = 0.15*pow(r,-2.)*(position[1]-0.65);
+    }
+    return array<double,2> {F_x, F_y};
+}
+
+double SourceField5( array<double,2> position )
+{
+    double r = distance(position, array<double,2> {0.65,0.65});
+    double sigma = 1/(2.*M_PI);
+    double Value;
+    if ( r<=0.15 )
+    {
+        Value = sigma;
+    }
+    else
+    {
+        Value = 0.;
+    }
+    return Value;
+
+}
+
+array<double,2> Field6( array<double,2> position , double alpha )
+{
+    double r = distance(position, array<double,2> {0.7,0.7});
+    double sigma = 10.;
+    double R = 0.2;
+    double F_x = 2.*sigma*exp(-1.*sigma*pow(r,2.))*(position[0]-.7);
+    double F_y = 2.*sigma*exp(-1.*sigma*pow(r,2.))*(position[1]-.7);
+    return array<double,2> {F_x , F_y};
+    
+    
+}
+
+double SourceField6( array<double,2> position )
+{
+    double r = distance(position, array<double,2> {0.7,0.7});
+    double sigma = 10.;
+    double Value = 4.*sigma*exp(-1.*sigma*pow(r,2.))*(1.-1.*sigma*pow(r,2.));
+    return Value;
+}
+
 int main()
 {
-    vector<int> RingNumber = {6,8,10,11,12,13,14,16,18};                       //different parameters for meshresolution
+    vector<int> RingNumber = {8};                       //different parameters for meshresolution
     vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
@@ -220,7 +276,7 @@ int main()
     vector<int> BoundaryNodesIndices = GetBoundaryNodesIndices( V.size() , BoundaryEdges );
     
     //getting the boundary condition (flux)
-    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field3 , alpha );
+    vector<double> FluxCorrection = GetFluxCorrection( BoundaryNodesIndices , BoundaryEdges , V , Field6 , alpha );
     
     
     //discretizing the forms
@@ -240,7 +296,7 @@ int main()
     vector<double> ModifiedSourceTerm;
     for (int j = 0; j < V.size(); j++)
     {
-        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField3(V[j]) );
+        ModifiedSourceTerm.push_back( FindEntryij(j,j,Hodge0)*SourceField6(V[j]) );
     }
     for (int j = 0; j < FluxCorrection.size(); j++)
     {
@@ -255,7 +311,7 @@ int main()
     {
         array<double,2> initial_point = V[E[j][0]];
         array<double,2> final_point = V[E[j][1]];
-        StarCochain.push_back( LineFluxIntegral( Field3 , alpha , initial_point , final_point ));
+        StarCochain.push_back( LineFluxIntegral( Field6 , alpha , initial_point , final_point ));
     }
     
 
@@ -292,7 +348,7 @@ int main()
 
     printf("%d\n", int(rep.terminationtype));
 
-    ofstream Poisson{"Solutions/PoissonHarmSolutionRing"+to_string(n_max)+".txt"};
+    ofstream Poisson{"Solutions/PoissonAsymSolutionRing"+to_string(n_max)+".txt"};
     for (int i = 0; i < V.size(); i++)
     {
         Poisson << x(i) << endl;
@@ -403,7 +459,7 @@ int main()
         NewErr << NewRhs[i]-NewLhs[i] << endl;
     }*/
     
-    cout << n << " of " << RingNumber.size() << endl;
+    cout << n+1 << " of " << RingNumber.size() << endl;
     }
 
 
