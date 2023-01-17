@@ -190,7 +190,7 @@ double SourceField6( array<double,2> position )
 
 int main()
 {
-    vector<int> RingNumber = {8};                       //different parameters for meshresolution
+    vector<int> RingNumber = {6,8,10,11,12,13,14,16,18};                       //different parameters for meshresolution
     vector<double> alpha_param = {3.};                  //different parameters for field exponent
     for (int n = 0; n < RingNumber.size() ; n++)
     {
